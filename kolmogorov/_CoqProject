@@ -1,0 +1,11 @@
+-Q "../external/synthetic-reducibility-coq/" Undecidability
+
+-Q . Kolmogorov
+
+binaryEncoding.v
+preliminaries.v
+listFacts.v
+kolmogorov.v
+uncomputability.v
+randomNumbers.v
+random_lower_bound.v
