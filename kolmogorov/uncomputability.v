@@ -5,17 +5,6 @@ Require Import List.
 Import ListNotations.
 From Kolmogorov Require Import binaryEncoding preliminaries listFacts kolmogorov.
 
-Lemma upper_bound n f:
-    univ n -> exists c, forall m, forall k, kol n (f m) k -> k <= length (encode m) + c.
-Proof.
-    intros.
-    destruct (univ_upper_bound n f H) as [d H2].
-    exists d; intros m kc (i & s & ?H & <- & ?H).
-    specialize (H2 m) as (i' & s' & ?H & ?H).
-    specialize (H1 i' s' H2).
-    lia.
-Qed.
-
 Lemma kol_list_eq n :
     forall l, ~~ exists L, forall x, kol n x l -> In x L.
 Proof.

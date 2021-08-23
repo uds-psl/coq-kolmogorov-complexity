@@ -225,7 +225,7 @@ Proof.
             rewrite encodeDecode.
             now apply n_list_In.
         }
-        intro. (* TODO : clear H1 *)
+        intro.
         assert (Forall (nonR c) l') as tmp by (apply Forall_forall; intuition).
         destruct (nonR_list c k l' H0 H3 tmp) as (L' & ?H & ?H & ?H); clear tmp.
         rewrite Forall_forall in H7.
@@ -256,6 +256,28 @@ Proof.
         specialize (H1 x H3) as [_ H1].
         contradiction.
     }
+Qed.
+
+Lemma R_non_empty c k l' :
+    MP -> univ c -> (forall x : nat, In x l' <-> R c x /\ In x (map decode (n_list k))) -> length l' >= 1.
+Proof.
+    intros mp ?H ?H.
+    enough (length l' <> 0) by lia; intro.
+    assert (forall x, In x (map decode (n_list k)) -> nonR c x).
+    {
+        destruct l'; [|cbn in *;lia].
+        intros.
+        apply (R_nonR c mp); intro.
+        specialize (H0 x) as [_ H0].
+        apply H0.
+        easy.
+    }
+    unshelve eassert (H3 := nonR_length c (map decode (n_list k)) k H _ _).
+    { apply Injective_map_NoDup; [apply decode_injective|apply (n_list_NoDup k)]. }
+    { intros; split; [|easy]. now apply H2. }
+    enough (length (map decode (n_list k)) = 2 ^ k) by lia.
+    rewrite map_length.
+    apply n_list_length.
 Qed.
 
 Lemma R_unbounded c :

@@ -680,28 +680,6 @@ Proof.
     now cbn.
 Qed.
 
-Lemma R_non_empty c k l' :
-    MP -> univ c -> (forall x : nat, In x l' <-> R c x /\ In x (map decode (n_list k))) -> length l' >= 1.
-Proof.
-    intros mp ?H ?H.
-    enough (length l' <> 0) by lia; intro.
-    assert (forall x, In x (map decode (n_list k)) -> nonR c x).
-    {
-        destruct l'; [|cbn in *;lia].
-        intros.
-        apply (R_nonR c mp); intro.
-        specialize (H0 x) as [_ H0].
-        apply H0.
-        easy.
-    }
-    unshelve eassert (H3 := nonR_length c (map decode (n_list k)) k H _ _).
-    { apply Injective_map_NoDup; [apply decode_injective|apply (n_list_NoDup k)]. }
-    { intros; split; [|easy]. now apply H2. }
-    enough (length (map decode (n_list k)) = 2 ^ k) by lia.
-    rewrite map_length.
-    apply n_list_length.
-Qed.
-
 Lemma enum_p_list_option_least_monotonic (p : nat -> Prop) (f : nat -> option nat) (m n : nat) :
     monotonic (fun s => proj1_sig (enum_p_list_option_least p f m n s)).
 Proof.
@@ -742,7 +720,7 @@ Proof.
                                               \/ (forall s, f(decode((list.replicate d false) ++ true :: v)) s = None /\ ~ exists L : list nat, NoDup L /\  length L = 2^n - S(decode (skipn (S(num_first_false v)) v)) /\  forall x, In x L -> (compose length encode) x = n /\ nonR c x)).
     {
         destruct H0 as (f & H0 & H1).
-        destruct (PSCT f H0) as [c' H2].
+        destruct (PCT f H0) as [c' H2].
         destruct (InvarianceTheorem c c' H) as [d H3].
         exists (2^(2*d+2)).
         intros.

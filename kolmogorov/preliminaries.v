@@ -1,4 +1,4 @@
-From Undecidability.Axioms Require Import axioms.
+From Undecidability.Axioms Require Import axioms principles.
 From Undecidability.Shared Require Import partial Dec mu_nat.
 From Undecidability.Synthetic Require Import FinitenessFacts Definitions.
 Require Import Init.Nat Arith.PeanoNat Lia FinFun Program.Basics List.
@@ -10,6 +10,14 @@ Lemma DN_imp {P Q : Prop} : ~~Q -> (Q -> ~~ P) -> ~~ P. Proof. tauto. Qed.
 Lemma DN_intro (P : Prop) : P -> ~~ P. Proof. tauto. Qed.
 
 Lemma N_imp (Q : Prop) : ~~Q -> (Q -> False) -> False. Proof. tauto. Qed.
+Lemma MP_LM (Q : Prop) (f : nat -> bool): MP -> ((Q \/ ~ Q) -> ~~(exists n, f n = true)) -> (exists n, f n = true). Proof. intros. apply H. tauto. Qed.
+
+Lemma LM_DN : LEM <-> forall P, ~~P -> P.
+Proof.
+    split; intros.
+    - destruct (H P); tauto.
+    - intro. apply H. tauto.
+Qed.
 
 (* Result by Yannick Forster *)
 Lemma p_sublist :
@@ -141,8 +149,14 @@ Proof.
     intros H a; apply iff_sym, (H a).
 Qed.
 
-Axiom SCT : forall f : nat -> nat, exists c, forall x, exists s, T c x s = Some (f x).
-Axiom PSCT : (forall (f : nat -> nat -> option nat), (forall x, monotonic (f x)) -> exists c : nat, forall (x : nat), agree (T c x) (f x)).
+Fact agree_trans T T' T'' : agree T T' -> agree T' T'' -> agree T T''.
+Proof.
+    intros ?H ?H a.
+    apply (iff_trans (H a) (H0 a)).
+Qed.
+
+Axiom CT : forall f : nat -> nat, exists c, forall x, exists s, T c x s = Some (f x).
+Axiom PCT : (forall (f : nat -> nat -> option nat), (forall x, monotonic (f x)) -> exists c : nat, forall (x : nat), agree (T c x) (f x)).
 
 Lemma monotonic_eq {X : Type} (H : eq_dec X) (f : nat -> option X) :
     monotonic f -> forall n n' x x', f n = Some x -> f n' = Some x' -> x = x'.

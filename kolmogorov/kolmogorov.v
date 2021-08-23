@@ -7,9 +7,6 @@ From Kolmogorov Require Import binaryEncoding preliminaries listFacts preliminar
 Definition kol (n : nat) (x : nat) (c : nat) : Prop :=
     exists y s, T n y s  = Some x /\ length (encode y) = c /\ (forall y' s, T n y' s = Some x -> length (encode y') >= length (encode y)).
 
-Definition kol_limited (n : nat) (s : nat) (x : nat) (c : nat) : Prop :=
-    exists y, T n y s = Some x /\ length (encode y) = c /\ (forall y', T n y' s = Some x -> y' >= y).
-
 Definition univ (n : nat) :=
     forall f, exists g, forall x, agree (T f x) (T n (decode (g ++ (encode x)))).
 
@@ -43,6 +40,15 @@ Proof.
     }
 Qed.
 
+Lemma kol_functional c : 
+    forall x kc kc', kol c x kc -> kol c x kc' -> kc = kc'.
+Proof.
+    intros x kc kc' (y & s & ?H & <- & ?H) (y' & s' & ?H' & <- & ?H').
+    specialize (H0 y' s' H').
+    specialize (H'0 y s H).
+    lia.
+Qed.
+
 Lemma InvarianceTheorem (n m : nat) :
     univ n -> exists d, forall x c c', kol n x c -> kol m x c' -> c <= c' + d.
 Proof.
@@ -62,20 +68,11 @@ Proof.
     constructor.
 Qed.
 
-Lemma kol_functional c : 
-    forall x kc kc', kol c x kc -> kol c x kc' -> kc = kc'.
-Proof.
-    intros x kc kc' (y & s & ?H & <- & ?H) (y' & s' & ?H' & <- & ?H').
-    specialize (H0 y' s' H').
-    specialize (H'0 y s H).
-    lia.
-Qed.
-
 Lemma univ_upper_bound c f :
     univ c -> exists k, forall x, exists i s, T c i s = Some (f x) /\ length (encode i) <= length (encode x) + k.
 Proof.
     intros.
-    destruct (SCT f) as [c' ?H].
+    destruct (CT f) as [c' ?H].
     specialize (H c') as [g ?H].
     exists (length g).
     intros x; specialize (H0 x) as [?s H0]; specialize (H x).
@@ -93,7 +90,7 @@ Lemma exists_univ :
 Proof.
     intros.
     unfold univ.
-    assert (H := PSCT (fun x s => let size := num_first_false (encode x) in let program := decode (firstn size (skipn (S size) (encode x))) in let input := decode (skipn (S(2 * size)) (encode x)) in T program input s)).
+    assert (H := PCT (fun x s => let size := num_first_false (encode x) in let program := decode (firstn size (skipn (S size) (encode x))) in let input := decode (skipn (S(2 * size)) (encode x)) in T program input s)).
     cbv beta in H.
     assert ((forall x : nat,
         monotonic
@@ -161,7 +158,7 @@ Lemma univ_exists_kol c :
     univ c -> forall x, ~~ exists k, kol c x k.
 Proof.
     intros.
-    destruct (SCT (fun x => x)) as [c' ?H].
+    destruct (CT (fun x => x)) as [c' ?H].
     specialize (H0 x) as [s ?H].
     specialize (H c') as [g ?H].
     specialize (H x x) as [H _].
@@ -179,4 +176,15 @@ Proof.
     apply conj; [exact H0|].
     destruct H0 as (?i & ?s & ?H & <- & ?H).
     exact (H1 i s H).
+Qed.
+
+Lemma upper_bound n f:
+    univ n -> exists c, forall m, forall k, kol n (f m) k -> k <= length (encode m) + c.
+Proof.
+    intros.
+    destruct (univ_upper_bound n f H) as [d H2].
+    exists d; intros m kc (i & s & ?H & <- & ?H).
+    specialize (H2 m) as (i' & s' & ?H & ?H).
+    specialize (H1 i' s' H2).
+    lia.
 Qed.
