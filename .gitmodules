@@ -1,0 +1,3 @@
+[submodule "external/synthetic-reducibility-coq"]
+	path = external/synthetic-reducibility-coq
+	url = https://github.com/synthetic-reducibility-coq/paper
